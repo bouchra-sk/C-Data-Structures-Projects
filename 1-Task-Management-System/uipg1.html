@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 60%;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #444;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            text-align: center;
+            color: #00bcd4;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            text-align: center;
+        }
+
+        nav ul li {
+            display: inline;
+            margin: 10px;
+        }
+
+        button {
+    padding: 10px 20px;
+    background-color: #00bcd4;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px; /* Add space above the button */
+}
+
+
+
+
+        button:hover {
+            background-color: #0288d1;
+        }
+
+        nav ul li:last-child {
+            margin-top: 20px;
+            display: block;
+        }
+
+        .task-form {
+            margin-top: 20px;
+        }
+
+        .task-form label {
+            display: block;
+            margin-top: 20px;
+        }
+
+        .task-form input, .task-form select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #555;
+            color: #fff;
+        }
+
+        button + button {
+            margin-left: 10px;
+        }
+
+        #tasksList {
+            margin-top: 30px;
+        }
+
+        #tasksList ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #tasksList ul li {
+            background-color: #555;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #666;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Task Management System</h1>
+        <nav>
+            <ul>
+                <li><button onclick="showForm('add')">Add Task</button></li>
+                <li><button onclick="showForm('delete')">Delete Task</button></li>
+                <li><button onclick="showForm('update')">Update Status</button></li>
+                <li><button onclick="showTasks()">Display All Tasks</button></li>
+                <li><button onclick="showForm('status')">Display by Status</button></li>
+                <li><button onclick="showForm('priority')">Search by Priority</button></li>
+                <li style="margin-top: 20px;"><button onclick="exitProgram()">Exit</button></li>
+            </ul>
+        </nav>
+
+        <div id="addForm" class="task-form" style="display: none;">
+            <h2>Add New Task</h2>
+            <label for="addTaskId">Task ID:</label>
+            <input type="number" id="addTaskId">
+            <label for="addDescription">Description:</label>
+            <input type="text" id="addDescription">
+            <label for="addPriority">Priority (1-5):</label>
+            <input type="number" id="addPriority" min="1" max="5">
+            <label for="addStatus">Status:</label>
+            <select id="addStatus">
+                <option value="pending">Pending</option>
+                <option value="in progress">In Progress</option>
+                <option value="completed">Completed</option>
+            </select>
+            <button onclick="addTask()">Add Task</button>
+            <button onclick="cancelForm()">Cancel</button>
+        </div>
+
+        <div id="deleteForm" class="task-form" style="display: none;">
+            <h2>Delete Task</h2>
+            <label for="deleteTaskId">Task ID:</label>
+            <input type="number" id="deleteTaskId">
+            <button onclick="deleteTask()">Delete Task</button>
+            <button onclick="cancelForm()">Cancel</button>
+        </div>
+
+        <div id="updateForm" class="task-form" style="display: none;">
+            <h2>Update Task Status</h2>
+            <label for="updateTaskId">Task ID:</label>
+            <input type="number" id="updateTaskId">
+            <label for="updateStatus">New Status:</label>
+            <select id="updateStatus">
+                <option value="pending">Pending</option>
+                <option value="in progress">In Progress</option>
+                <option value="completed">Completed</option>
+            </select>
+            <button onclick="updateTaskStatus()">Update Status</button>
+            <button onclick="cancelForm()">Cancel</button>
+        </div>
+
+        <div id="statusForm" class="task-form" style="display: none;">
+            <h2>Display Tasks by Status</h2>
+            <select id="statusFilter">
+                <option value="pending">Pending</option>
+                <option value="in progress">In Progress</option>
+                <option value="completed">Completed</option>
+            </select>
+            <button onclick="displayByStatus()">Display</button>
+            <button onclick="cancelForm()">Cancel</button>
+        </div>
+
+        <div id="priorityForm" class="task-form" style="display: none;">
+            <h2>Search Tasks by Priority</h2>
+            <label for="prioritySearch">Priority:</label>
+            <input type="number" id="prioritySearch" min="1" max="5">
+            <button onclick="searchByPriority()">Search</button>
+            <button onclick="cancelForm()">Cancel</button>
+        </div>
+
+        <div id="tasksList" style="display: none;">
+            <h2>Task List</h2>
+            <ul id="taskDisplay"></ul>
+        </div>
+    </div>
+
+    <script>
+        let tasks = [];
+
+        function showForm(formType) {
+            document.querySelectorAll('.task-form').forEach(form => form.style.display = 'none');
+            document.getElementById(`${formType}Form`).style.display = 'block';
+        }
+
+        function cancelForm() {
+            document.querySelectorAll('.task-form').forEach(form => form.style.display = 'none');
+        }
+
+        function addTask() {
+            const id = document.getElementById('addTaskId').value;
+            const description = document.getElementById('addDescription').value;
+            const priority = document.getElementById('addPriority').value;
+            const status = document.getElementById('addStatus').value;
+
+            if (!id || !description || !priority || !status) {
+                alert('Please fill out all fields.');
+                return;
+            }
+
+            tasks.push({ id, description, priority, status });
+            alert('Task added successfully!');
+            cancelForm();
+        }
+
+        function deleteTask() {
+            const id = document.getElementById('deleteTaskId').value;
+            tasks = tasks.filter(task => task.id !== id);
+            alert('Task deleted successfully!');
+            cancelForm();
+        }
+
+        function updateTaskStatus() {
+            const id = document.getElementById('updateTaskId').value;
+            const newStatus = document.getElementById('updateStatus').value;
+
+            const task = tasks.find(task => task.id === id);
+            if (task) {
+                task.status = newStatus;
+                alert('Task status updated!');
+            } else {
+                alert('Task not found!');
+            }
+            cancelForm();
+        }
+
+        function showTasks() {
+            const taskDisplay = document.getElementById('taskDisplay');
+            taskDisplay.innerHTML = '';
+
+            if (tasks.length === 0) {
+                taskDisplay.innerHTML = '<li>No tasks available.</li>';
+            } else {
+                tasks.forEach(task => {
+                    const li = document.createElement('li');
+                    li.textContent = `ID: ${task.id}, Description: ${task.description}, Priority: ${task.priority}, Status: ${task.status}`;
+                    taskDisplay.appendChild(li);
+                });
+            }
+
+            document.getElementById('tasksList').style.display = 'block';
+        }
+
+        function displayByStatus() {
+            const status = document.getElementById('statusFilter').value;
+            const filteredTasks = tasks.filter(task => task.status === status);
+
+            const taskDisplay = document.getElementById('taskDisplay');
+            taskDisplay.innerHTML = '';
+
+            if (filteredTasks.length === 0) {
+                taskDisplay.innerHTML = '<li>No tasks match the selected status.</li>';
+            } else {
+                filteredTasks.forEach(task => {
+                    const li = document.createElement('li');
+                    li.textContent = `ID: ${task.id}, Description: ${task.description}, Priority: ${task.priority}, Status: ${task.status}`;
+                    taskDisplay.appendChild(li);
+                });
+            }
+
+            document.getElementById('tasksList').style.display = 'block';
+        }
+
+        function searchByPriority() {
+            const priority = document.getElementById('prioritySearch').value;
+            const filteredTasks = tasks.filter(task => task.priority == priority);
+
+            const taskDisplay = document.getElementById('taskDisplay');
+            taskDisplay.innerHTML = '';
+
+            if (filteredTasks.length === 0) {
+                taskDisplay.innerHTML = '<li>No tasks match the selected priority.</li>';
+            } else {
+                filteredTasks.forEach(task => {
+                    const li = document.createElement('li');
+                    li.textContent = `ID: ${task.id}, Description: ${task.description}, Priority: ${task.priority}, Status: ${task.status}`;
+                    taskDisplay.appendChild(li);
+                });
+            }
+
+            document.getElementById('tasksList').style.display = 'block';
+        }
+
+        function exitProgram() {
+            alert('Exiting the program...');
+            window.close();
+        }
+    </script>
+</body>
+</html>
+

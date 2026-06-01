@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Library Book Management System</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8eddc;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #9a7a46;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            border-left-width: 300px;
+        }
+
+        nav {
+            background-color: #9a7a46;
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        nav a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 800px;
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        button {
+            margin: 5px 0;
+            padding: 10px;
+            background-color: #9a7a46;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        button:hover {
+            background-color: #9a7a46;
+        }
+
+        .output {
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input {
+            padding: 10px;
+            margin-bottom: 10px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <header>
+        <h1>Library Book Management System</h1>
+    </header>
+
+    <nav>
+        <a href="javascript:void(0)" onclick="showSection('add-book')">Add Book</a>
+        <a href="javascript:void(0)" onclick="showSection('borrow-book')">Borrow Book</a>
+        <a href="javascript:void(0)" onclick="showSection('return-book')">Return Book</a>
+        <a href="javascript:void(0)" onclick="showSection('recent-books')">View Recently Returned Books</a>
+        <a href="javascript:void(0)" onclick="showSection('borrow-queue')">View Borrow Queue</a>
+        <a href="javascript:void(0)" onclick="showSection('search-book')">Search Book</a>
+    </nav>
+
+    <main>
+        <!-- Add Book Section -->
+        <div id="add-book" class="container">
+            <h2>Add New Book</h2>
+            <label for="book-title">Book Title:</label>
+            <input type="text" id="book-title" placeholder="Enter book title">
+            <label for="author">Author:</label>
+            <input type="text" id="author" placeholder="Enter author name">
+            <label for="id">Book ID:</label>
+            <input type="text" id="id" placeholder="Enter Book ID">
+            <button onclick="addBook()">Add Book</button>
+        </div>
+
+        <!-- Borrow Book Section -->
+        <div id="borrow-book" class="container">
+            <h2>Borrow Book</h2>
+            <label for="borrow-book-id">Book ID:</label>
+            <input type="text" id="borrow-book-id" placeholder="Enter book ID">
+            <label for="user-id">User ID:</label>
+            <input type="text" id="user-id" placeholder="Enter user ID">
+            <label for="user-name">User Name:</label>
+            <input type="text" id="user-name" placeholder="Enter user name">
+            <button onclick="borrowBook()">Borrow Book</button>
+        </div>
+
+        <!-- Return Book Section -->
+        <div id="return-book" class="container">
+            <h2>Return Book</h2>
+            <label for="return-book-id">Book ID:</label>
+            <input type="text" id="return-book-id" placeholder="Enter book ID">
+            <button onclick="returnBook()">Return Book</button>
+        </div>
+
+        <!-- Recently Returned Books Section -->
+        <div id="recent-books" class="container">
+            <h2>View Recently Returned Books</h2>
+            <button onclick="viewReturnedBooks()">View Stack</button>
+            <div class="output" id="recently-returned"></div>
+        </div>
+
+        <!-- Borrow Queue Section -->
+        <div id="borrow-queue" class="container">
+            <h2>Display Borrow Request Queue</h2>
+            <button onclick="viewBorrowQueue()">View Queue</button>
+            <div class="output" id="borrow-queue"></div>
+        </div>
+
+        <!-- Search Book Section -->
+        <div id="search-book" class="container">
+            <h2>Search for a Book</h2>
+            <label for="search-book-id">Book ID:</label>
+            <input type="text" id="search-book-id" placeholder="Enter book ID">
+            <button onclick="searchBook()">Search</button>
+            <div class="output" id="search-result"></div>
+        </div>
+
+    </main>
+
+    <script>
+        const library = [];
+        const recentlyReturned = [];
+        const borrowQueue = [];
+
+        function showSection(sectionId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.container');
+            sections.forEach(section => section.style.display = 'none');
+
+            // Show the selected section
+            const selectedSection = document.getElementById(sectionId);
+            if (selectedSection) {
+                selectedSection.style.display = 'block';
+            }
+        }
+
+        function addBook() {
+            const title = document.getElementById('book-title').value;
+            const author = document.getElementById('author').value;
+            const id = library.length + 1;
+
+            library.push({ id, title, author, available: true });
+            alert(`Book added: ${title} by ${author}`);
+        }
+
+        function borrowBook() {
+            const bookId = parseInt(document.getElementById('borrow-book-id').value);
+            const userId = document.getElementById('user-id').value;
+            const userName = document.getElementById('user-name').value;
+
+            const book = library.find(b => b.id === bookId);
+            if (book && book.available) {
+                book.available = false;
+                alert(`${userName} borrowed ${book.title}`);
+            } else {
+                borrowQueue.push({ userId, userName, bookId });
+                alert(`${book ? book.title : 'Book'} is unavailable. Added ${userName} to the queue.`);
+            }
+        }
+
+        function returnBook() {
+            const bookId = parseInt(document.getElementById('return-book-id').value);
+            const book = library.find(b => b.id === bookId);
+
+            if (book) {
+                book.available = true;
+                recentlyReturned.push(book);
+                alert(`${book.title} returned successfully.`);
+                processRequests();
+            } else {
+                alert('Book not found in library.');
+            }
+        }
+
+        function processRequests() {
+            if (borrowQueue.length > 0) {
+                const nextRequest = borrowQueue.shift();
+                const book = library.find(b => b.id === nextRequest.bookId);
+                if (book && book.available) {
+                    book.available = false;
+                    alert(`Processed request: ${nextRequest.userName} borrowed ${book.title}.`);
+                } else {
+                    borrowQueue.unshift(nextRequest);
+                }
+            }
+        }
+
+        function viewReturnedBooks() {
+            const output = document.getElementById('recently-returned');
+            output.innerHTML = recentlyReturned.map(book => `${book.title} by ${book.author}`).join('<br>') || 'No books in the stack.';
+        }
+
+        function viewBorrowQueue() {
+            const output = document.getElementById('borrow-queue');
+            output.innerHTML = borrowQueue.map(q => `${q.userName} requested book ID ${q.bookId}`).join('<br>') || 'No users in the queue.';
+        }
+
+        function searchBook() {
+            const bookId = parseInt(document.getElementById('search-book-id').value);
+            const book = library.find(b => b.id === bookId);
+            const output = document.getElementById('search-result');
+
+            if (book) {
+                output.innerHTML = `${book.title} by ${book.author} is ${book.available ? 'available' : 'unavailable'}.`;
+            } else {
+                output.innerHTML = 'Book not found.';
+            }
+        }
+
+        // Initial setup: Show the 'Add Book' section by default
+        showSection('add-book');
+    </script>
+
+</body>
+
+</html>
